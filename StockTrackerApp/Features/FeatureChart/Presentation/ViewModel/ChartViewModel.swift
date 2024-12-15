@@ -19,9 +19,7 @@ class ChartViewModel: ObservableObject {
     }
     
     @Published var historicalData: [OptionContract] = []
-    @Published var foregroundMarkColor: Color = .blue
-    @Published var selectedXRuleMark: (Double, String)? = nil
-    @Published var previousCloseRuleMarkValue: Double? = nil
+    @Published var color: Color = .blue
     @Published var responseMessage: String? = nil
     @Published var toastManager = ToastManager()
     
