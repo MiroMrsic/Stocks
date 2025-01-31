@@ -70,6 +70,9 @@ extension StockListViewModel {
         priceUpdateTimer = nil
     }
     
+    func stockAreEmpty() -> Bool {
+        savedStocks.isEmpty
+    }
     
     func checkForSignificantPriceChange(for stock: Stock) {
         guard let previousPrice = stock.previousPrice,

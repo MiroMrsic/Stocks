@@ -137,7 +137,7 @@ extension StockListView {
                     .font(.caption.weight(.bold))
                     .foregroundStyle(Color(uiColor: .secondaryLabel))
             }
-            .disabled(viewModel.savedStocks.isEmpty)
+            .disabled(viewModel.stockAreEmpty())
         }
     }
 }
