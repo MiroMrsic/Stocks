@@ -11,9 +11,9 @@ protocol StockDetailProtocol {
 }
 
 final class StockDetailRepository: StockDetailProtocol {
-    private let firestoreManager: FirestoreManager
+    private let firestoreManager: MyFirestoreActor
     
-    init(firestoreManager: FirestoreManager = .shared) {
+    init(firestoreManager: MyFirestoreActor = FirestoreActor.shared) {
         self.firestoreManager = firestoreManager
     }
     

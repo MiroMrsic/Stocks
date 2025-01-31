@@ -13,45 +13,18 @@ protocol StockRepositoryProtocol {
     func saveStock(stock: Stock, userId: String) async throws
     func deleteStock(_ stock: Stock) async throws
     func getGlobalQuote(symbol: String) async throws -> GlobalQuoteResponse
-    func subscribeToStockUpdates(_ completion: @escaping (Result<[Stock], NetworkError>) -> Void)
+    func subscribeToStockUpdates() async throws -> [Stock]
 }
 
 class StockRepository: StockRepositoryProtocol {
-    private let firestoreManager: FirestoreManager
+    private let firestoreManager: MyFirestoreActor
     
-    init(firestoreManager: FirestoreManager = .shared) {
+    init(firestoreManager: MyFirestoreActor = FirestoreActor.shared) {
         self.firestoreManager = firestoreManager
     }
     
-    func subscribeToStockUpdates(
-        _ completion: @escaping (Result<[Stock], NetworkError>) -> Void
-    ) {
-        firestoreManager.db.collection("stocks").addSnapshotListener { querySnapshot, error in
-            if let error = error {
-                completion(.failure(.Response(response: "Error fetching documents: \(error.localizedDescription)")))
-                return
-            }
-            
-            guard let documents = querySnapshot?.documents else {
-                completion(.failure(.Response(response: "No documents found")))
-                return
-            }
-            
-            let stocks: [Stock] = documents.compactMap { snapshot in
-                do {
-                    return try snapshot.data(as: Stock.self)
-                } catch {
-                    print("Error decoding document: \(error.localizedDescription)")
-                    return nil
-                }
-            }
-            
-            if stocks.isEmpty {
-                return completion(.failure(.Response(response: "No valid stock data found")))
-            }
-            
-            completion(.success(stocks))
-        }
+    func subscribeToStockUpdates() async throws -> [Stock] {
+        return try await firestoreManager.subscribeToStockUpdates()
     }
     
     func fetchSavedStocks(for userId: String) async throws -> [Stock] {

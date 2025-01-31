@@ -95,18 +95,29 @@ extension OnboardingViewModel {
         let password = getTrimmedValue(for: self.password)
         
         self.toastManager.showLoadingToast()
-        repository.signUp(with: .init(email: email, password: password))
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case let .failure(error) = completion,
-                   let error =  AuthErrorCode(rawValue: error.code)?.errorMessage {
-                    self.toastManager.showErrorToast(withMessage: error)
-                }
-            }, receiveValue: { _ in
+        self.performSignUp(with: email, password: password, onSuceess: onSuceess)
+    }
+    
+    private func performSignUp(
+        with email: String,
+        password: String,
+        onSuceess: @escaping () -> Void
+    ) {
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await self.repository.signUp(with: .init(email: email, password: password))
                 self.toastManager.isShowingErrorToast = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: onSuceess)
-            })
-            .store(in: &cancellables)
+                onSuceess()
+            } catch {
+                if let error = error as? AuthErrorCode,
+                   let errorMessage = AuthErrorCode(
+                    rawValue: error.code.code.rawValue
+                   )?.errorMessage {
+                    self.toastManager.showErrorToast(withMessage: errorMessage)
+                }
+            }
+        }
     }
     
     func login(_ onSuceess: @escaping () -> Void) {
@@ -117,17 +128,26 @@ extension OnboardingViewModel {
         let password = getTrimmedValue(for: self.password)
         
         self.toastManager.showLoadingToast()
-        repository.login(with: .init(email: email, password: password))
-            .receive(on: DispatchQueue.main)
-            .sink(receiveCompletion: { completion in
-                if case let .failure(error) = completion,
-                   let error =  AuthErrorCode(rawValue: error.code)?.errorMessage {
-                    self.toastManager.showErrorToast(withMessage: error)
+        self.performLogin(emai: email, password: password, onSuccess: onSuceess)
+    }
+    
+    func performLogin(
+        emai: String,
+        password: String,
+        onSuccess: @escaping () -> Void
+    ) {
+        Task {
+            do {
+                try await repository.login(with: .init(email: emai, password: password))
+                onSuccess()
+            } catch {
+                if let error = error as? AuthErrorCode,
+                   let errorMessage = AuthErrorCode(
+                    rawValue: error.code.code.rawValue
+                   )?.errorMessage {
+                    self.toastManager.showErrorToast(withMessage: errorMessage)
                 }
-            }, receiveValue: { _ in
-                self.toastManager.isShowingErrorToast = false
-                onSuceess()
-            })
-            .store(in: &cancellables)
+            }
+        }
     }
 }

@@ -22,7 +22,9 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .navigationBarTitleDisplayMode(.inline)
         .environment(\.appState) { currentAppState in
-            viewModel.currentAppState = currentAppState
+            DispatchQueue.main.async {
+                viewModel.currentAppState = currentAppState
+            }
         }
         .onAppear {
             DispatchQueue.main.async {

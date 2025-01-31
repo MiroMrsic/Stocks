@@ -124,7 +124,7 @@ extension StockListViewModel {
             savedStocks = allStocks.sorted(by: {$0.name < $1.name })
         }
     }
-
+    
     func filterStocks(by filter: StockFilterCriterion) {
         savedStocks = allStocks
         savedStocks = savedStocks.filter { stock in
@@ -277,17 +277,14 @@ extension StockListViewModel {
     
     private func subscribeToStockUpdates() {
         guard let userId = self.user?.uid else { return }
-        repository.subscribeToStockUpdates { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let stocks):
-                let filteredStocks = stocks
-                    .filter {$0.userId == userId }
-                    .sorted(by: {$0.name < $1.name})
-                
+        
+        Task {
+            do {
+                let stocks = try await repository.subscribeToStockUpdates()
+                let filteredStocks = stocks.filter { $0.userId == userId }
                 self.savedStocks = filteredStocks
                 self.allStocks = filteredStocks
-            case .failure(let error):
+            } catch {
                 self.toastManager.showErrorToast(withMessage: error.localizedDescription)
             }
         }
