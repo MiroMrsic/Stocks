@@ -22,10 +22,11 @@ actor MyFirestoreActor {
     // MARK: - Fetch Saved Stocks
     
     func fetchSavedStocks(for userId: String) async throws -> [Stock] {
-        let snapshot = try await db.collection("stocks").getDocuments()
+        let query = db.collection("stocks").whereField("userId", isEqualTo: userId)
+        let snapshot = try await query.getDocuments()
+        
         return try snapshot.documents.compactMap { document in
-            let stock = try document.data(as: Stock.self)
-            return stock.userId == userId ? stock : nil
+            try document.data(as: Stock.self)
         }
     }
     
